@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: dashboard-postgres18
+    restart: always
+    ports:
+      - "5477:5432"
+    environment:
+      POSTGRES_DB: login
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+    volumes:
+      - pgdata18:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - dashboard-network18
+
+  backend:
+    build: ./Backend
+    container_name: dashboard-backend18
+    ports:
+      - "3077:3077"
+    depends_on:
+      - postgres
+    environment:
+      - PORT=3077
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=admin123
+      - DB_DATABASE=login
+      - JWT_SECRET=your_jwt_secret_key
+    networks:
+      - dashboard-network18
+
+  dashboard:
+    build: ./Dashboard
+    container_name: dashboard-frontend18
+    ports:
+      - "8150:80"
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network18
+
+  forgot_password:
+    build: ./Forgot_password
+    container_name: dashboard-forgot18
+    ports:
+      - "8151:80"
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network18
+
+  login:
+    build: ./Login
+    container_name: dashboard-login18
+    ports:
+      - "8152:80"
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network18
+
+  sign:
+    build: ./Sign
+    container_name: dashboard-sign18
+    ports:
+      - "8153:80"
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network18
+
+volumes:
+  pgdata18:
+
+networks:
+  dashboard-network18:
+
