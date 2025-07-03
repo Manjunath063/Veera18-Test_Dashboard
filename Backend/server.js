@@ -11,29 +11,40 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3077;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || 'postgres',
   database: process.env.DB_DATABASE || 'login',
-  password: process.env.DB_PASSWORD || 'Veera@0134',
+  password: process.env.DB_PASSWORD || 'admin123',
   port: parseInt(process.env.DB_PORT) || 5432,
 });
 
 const allowedOrigins = [
   'http://127.0.0.1:5500',
-  'http://localhost:3000'
+  'http://16.171.226.8:3077',
+  'http://16.171.226.8:8152', // ✅ Add the Login frontend origin
+  'http://16.171.226.8:8150', // ✅ Optionally, add Dashboard or others too
+  'http://16.171.226.8:8151',
+  'http://16.171.226.8:8153'
 ];
 
 app.use(cors({
-  origin: 'http://127.0.0.1:5500', // or your exact frontend origin
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed from this origin: ' + origin));
+    }
+  },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   exposedHeaders: ['set-cookie']
 }));
+
 app.use((req, res, next) => {
   console.log('Incoming request:', req.method, req.url);
   console.log('Headers:', req.headers);
@@ -314,7 +325,7 @@ app.get('/api/protected', authenticateToken, (req, res) => {
 
 initDatabase().then(() => {
   app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running on http://16.171.226.8:${port}`);
     console.log('Available routes:');
     console.log('GET  /                 -> Login page');
     console.log('GET  /signup           -> Signup page');
